@@ -54,7 +54,7 @@ def multiprocessing_wrapper(
         process_args.append(args)
 
     if nproc == 1:
-        return worker_function(process_args[0])
+        return worker_function(process_args[0])[1]
 
     with mp.Pool(nproc) as pool:
         results = pool.map(worker_function, process_args)
