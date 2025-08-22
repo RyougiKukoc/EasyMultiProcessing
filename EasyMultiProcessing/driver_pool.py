@@ -23,6 +23,7 @@ def multiprocessing_wrapper(
         modulo_params: Dict[str, Any] = None,
         iterable_params: Dict[str, Any] = None,
 ):
+    mp.set_start_method("spawn", force=True)
     n_iter, n_iter_per_proc = None, 0
     if iterable_params:
         for v in iterable_params.values():
