@@ -21,6 +21,9 @@ def sub_modulo_params(modulo_params: Dict[str, Any], rank: int):
 def sub_singleton_params(singleton_params: Dict[str, Any], rank: int):
     return {k: v[1 if rank else 0] for k, v in singleton_params.items()}
 
+def function_wrapper2(kwargs):
+    function_wrapper(**kwargs)
+
 def function_wrapper(
         rank: int,
         func: Callable,
@@ -101,8 +104,7 @@ def multiprocessing_wrapper(
             rank_modulo_params = sub_modulo_params(modulo_params, rank)
         else:
             rank_modulo_params = {}
-        rank_func = partial(
-            function_wrapper,
+        pool.append(dict(
             rank=rank,
             func=func,
             save_filepath=save_filepath,
@@ -110,11 +112,11 @@ def multiprocessing_wrapper(
             singleton_params=rank_singleton_params,
             modulo_params=rank_modulo_params,
             iterable_params=rank_iterable_params,
-        )
-        p = mp.Process(target=rank_func, daemon=True)
-        p.start()
-        pool.append(p)
-    for p in pool:
-        p.join()
+        ))
+    if nproc > 1:
+        with mp.Pool(nproc) as p:
+            p.map(function_wrapper2, pool)
+    else:
+        function_wrapper(**pool[0])
     gathered_results = gather_subprocess_cache(nproc, save_filepath)
     return gathered_results
